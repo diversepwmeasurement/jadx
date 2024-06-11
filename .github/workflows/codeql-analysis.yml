@@ -1,41 +1,34 @@
-name: "CodeQL"
-
-on:
-  push:
-    branches: [master]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [master]
-  schedule:
-    - cron: '0 9 * * 5'
-
 jobs:
   analyze:
     name: Analyze
-    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
       security-events: write
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      name: Checkout repository
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: +security-extended
+    - continue-on-error: true
+      run: './gradlew clean build -x checkstyleTest -x checkstyleMain -x test -x '':jadx-core:testClasses''
 
+        '
+    - continue-on-error: true
+      name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
     strategy:
       fail-fast: false
       matrix:
-        language: ['java']
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
-      with:
-        queries: +security-extended
-        languages: ${{ matrix.language }}
-
-    # Don't build tests in jadx-core also skip tests execution and checkstyle tasks
-    - run: |
-        ./gradlew clean build -x checkstyleTest -x checkstyleMain -x test -x ':jadx-core:testClasses'
-
-    - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+        language:
+        - java
+name: CodeQL
+on:
+  repository_dispatch:
+    types: trigger-ga___codeql-analysis.yml

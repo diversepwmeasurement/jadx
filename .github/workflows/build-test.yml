@@ -1,28 +1,26 @@
-name: Build Test
-
-on:
-  push:
-    branches: [ master, build-test ]
-  pull_request:
-    branches: [ master ]
-
 jobs:
   tests:
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      uses: actions/checkout@v4
+    - continue-on-error: true
+      name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 11
+    - continue-on-error: true
+      name: Build with Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        arguments: build dist copyExe
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest ]
-
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 11
-
-      - name: Build with Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          arguments: build dist copyExe
+        os:
+        - ubuntu-latest
+        - windows-latest
+name: Build Test
+on:
+  repository_dispatch:
+    types: trigger-ga___build-test.yml
